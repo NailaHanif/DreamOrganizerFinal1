@@ -1,0 +1,68 @@
+.tableData {
+    width: 100%;
+    border-spacing: 0;
+    
+  }
+  
+  .tableData th, .tableData td {
+    text-align: center;
+    padding: 8px;
+    border-bottom: 1px solid #dddddd; /* Add a border at the bottom of each row */
+   /* font-size:13px; */
+  }
+ 
+  .gradient-button {
+    background: linear-gradient(to right, #3498db, green);
+    color: white; /* Text color for better visibility */
+    padding: 8px 16px; /* Adjust padding as needed */
+    border: none; /* Remove the button border if necessary */
+    cursor: pointer;
+  }
+  .blue-gradient-button {
+    background: linear-gradient(to right, #3498db, blue);
+    color: white; /* Text color for better visibility */
+    padding: 8px 16px; /* Adjust padding as needed */
+    border: none; /* Remove the button border if necessary */
+    cursor: pointer;
+  }
+  
+  .green-gradient-button {
+    background: linear-gradient(to right, #3fdb34, rgb(0, 189, 0));
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .orange-gradient-button {
+    background: linear-gradient(to right, #f20b07, rgb(254, 23, 6));
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .tableData button {
+    padding: 5px 10px;
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 5px;
+  }
+ .li {
+  list-style: none;
+ }
+ .event-detail {
+  text-decoration: none;
+ color: #3fdb34;
+ border-bottom: 1px solid #390472;
+ }
+  /* .data-table td:first-child { */
+    /* margin-left: 50px; Add a left margin to the first column */
+  /* } */
+  
+  /* .data-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+  } */
