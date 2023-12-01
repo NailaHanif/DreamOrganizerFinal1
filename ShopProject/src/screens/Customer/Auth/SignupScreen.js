@@ -270,6 +270,7 @@ const SellerSignup = () => {
                 already have an account? <Text style={{ color: AppColors.primary }}>Log in</Text>
               </Text>
             </TouchableOpacity>
+            <Text></Text>
           </View>
         </Animatable.View>
       </View>
