@@ -1,5 +1,6 @@
 const customereferences=require('../references/customReferences');
 const newAdmin=customereferences.mongoose.Schema({
+   
     password:String,
     email:String
 })

@@ -22,7 +22,6 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import AppColors from '../../assets/colors/AppColors';
 import { Neomorph } from 'react-native-neomorph-shadows-fixes';
 import NeomorphStyles from '../../assets/styles/NeomorphStyles';
-import TextFieldStyles from '../../assets/styles/TextFieldStyles';
 import { clockRunning } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import AppContext from '../../context/AppContext';

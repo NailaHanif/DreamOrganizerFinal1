@@ -2,7 +2,7 @@ import { useState } from "react";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 // react-router-dom components
-import { Link, useNavigate } from "react-router-dom";
+import { Link, json, useNavigate } from "react-router-dom";
 
 // @mui material components
 import Switch from "@mui/material/Switch";
@@ -74,6 +74,7 @@ function SignIn() {
     .then((response) => {
       console.log(response.data);
       if (response.data.match) {
+        localStorage.setItem("admin", JSON.stringify(response.data));
         navigate("/dashboard");
       } else {
         alert("Invalid user");
@@ -84,7 +85,23 @@ function SignIn() {
     });
     
   };
-
+  const buttonStyle = {
+    background: 'linear-gradient(to right, #009387, #023e8a)',
+    color: '#fff',
+    padding: '10px 20px',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease',
+  };
+  const textGradientStyle = {
+    backgroundImage: 'linear-gradient(to right,#4cb8c4, #3cd3ad, #009387, #023e8a)',
+    WebkitBackgroundClip: 'text',
+    backgroundClip: 'text',
+    color: 'transparent',
+    fontSize: '24px', // Adjust the font size as needed
+    fontWeight: 'bold', // Adjust the font weight as needed
+  };
   return (
     <CoverLayout
       title="Dream Organizer"
@@ -93,6 +110,9 @@ function SignIn() {
     >
       <SoftBox component="form" role="form">
         <SoftBox mb={2}>
+        <div style={{ display: 'inline-block' }}>
+      <h1 style={textGradientStyle}>Dream Organizers</h1>
+    </div>
           <SoftBox mb={1} ml={0.5}>
             <SoftTypography component="label" variant="caption" fontWeight="bold">
               Email
@@ -167,7 +187,12 @@ function SignIn() {
         </SoftBox>
 
         <SoftBox mt={4} mb={1}>
-          <SoftButton
+        <button style={buttonStyle} type="button"  onClick={() => {
+              businessSignin();
+            }}>
+      Login
+    </button>
+          {/* <SoftButton
             onClick={() => {
               businessSignin();
             }}
@@ -176,7 +201,7 @@ function SignIn() {
             fullWidth
           >
             sign in
-          </SoftButton>
+          </SoftButton> */}
         </SoftBox>
       </SoftBox>
     </CoverLayout>

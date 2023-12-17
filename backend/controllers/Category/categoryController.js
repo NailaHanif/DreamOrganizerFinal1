@@ -1,4 +1,4 @@
-const categoryModel=require('../../model/Category')
+const categoryModel = require('../../model/Category')
 const customReferences = require("../../references/customReferences");
 // image jahan store krani a uska path
 customReferences.app.use('/public/assets/images', customReferences.express.static('public'));
@@ -7,7 +7,7 @@ customReferences.app.use('/public/assets/images', customReferences.express.stati
 
 const storage = customReferences.multer.diskStorage({
   destination: (req, file, cb) => {
-   
+
     cb(null, "./public"); // Make sure this folder exists
   },
   filename: (req, file, cb) => {
@@ -30,43 +30,26 @@ const upload = customReferences.multer({
 //............image upload complete Middleware....
 
 customReferences.app.post("/addCategory", upload.single("category_image"), async (request, response) => {
-  try {
-    console.log("Request body:", request.body);
-    // console.log("Request file:", request.file);
+ 
+try {
+  const newCategory = new categoryModel({
+    category_name: request.body.category_name,
+    category_image: request.file.filename
+  });
 
-    if (!request.file) {
-      return response.status(400).send("No file uploaded.");
-    }
-
-    
-
-    const newCategory = new categoryModel({
-      category_name: request.body.category_name, // Update if needed
-      category_image: request.file.filename
-    });
-
-    const result = await newCategory.save();
-    console.log("Result:", result);
-
-    if (result) {
-      response.send({ "save": true, "newcategory": result });
-    }  else {
-      // Handle failure due to uniqueness constraint violation
-      console.log('Data is not saved successfully - Unique constraint violation');
-
-      // Check which constraint was violated
-      // if (result.duplicateName) {
-      //   response.status(400).send({ "save": false, error: 'Duplicate category name' });
-      // } else if (result.duplicateImage) {
-      //   response.status(400).send({ "save": false, error: 'Duplicate category image' });
-      // } else {
-      //   response.status(500).send({ "save": false, error: 'Internal Server Error' });
-      // }
-    }
-  } catch (error) {
+  const result = await newCategory.save();
+  response.send({ "save": true, "newcategory": result });
+} catch (error) {
+  if (error.code === 11000 && error.keyPattern.category_name) {
+    response.send({ "save": false, error: 'Duplicate category name' });
+  } else if (error.code === 11000 && error.keyPattern.category_image) {
+    response.send({ "save": false, error: 'Duplicate category image' });
+  } else {
     console.error('Error saving data to MongoDB', error);
-    response.status(500).send('Internal Server Error');
+    response.status(500).send({ "save": false, error: 'Internal Server Error' });
   }
+}
+
 });
 customReferences.app.delete('/deleteCategory/:id', async (request, response) => {
   const categoryId = request.params.id;
@@ -89,7 +72,8 @@ customReferences.app.delete('/deleteCategory/:id', async (request, response) => 
 
 customReferences.app.get('/viewAllCategories', async (req, res) => {
   try {
-    const categories = await categoryModel.find().populate('subcategories');
+    const categories = await categoryModel.find().populate('SubCategory');
+
     const categoriesWithImageUrl = categories.map(item => ({
       ...item._doc,
       category_image: `${item.category_image}`,
@@ -102,38 +86,63 @@ customReferences.app.get('/viewAllCategories', async (req, res) => {
   }
 });
 
-  
 
- 
 
-customReferences.app.post("/updateCategory/:id", upload.single("category_image"), async (request, response) => {
+
+customReferences.app.put("/updateCategory/:id", upload.single("category_image"), async (request, response) => {
   try {
+    // Check if a file is uploaded
+    if (!request.file) {
+      return response.status(400).json({ error: 'No file uploaded' });
+    }
+
     const categoryId = request.params.id;
-    const categoryToUpdate = await categoryModel.findById(categoryId);
 
-    if (!categoryToUpdate) {
-      return response.status(404).send('Category not found');
-    }
+    console.log("Request Body:", request.body);
+    console.log("Request File:", request.file);
 
-    // Update category data
-    categoryToUpdate.category_name = request.body.newCategoryName;
-    console.log(categoryToUpdate)
-    if (request.file) {
-      categoryToUpdate.category_image = request.file.filename;
-    }
+    let obj = {
+      _id: categoryId,
+      category_name: request.body.category_name,
+      category_image: request.file.filename,
+    };
 
-    const result = await categoryToUpdate.save();
-    console.log("Result:", result);
+    console.log("Update Object:", obj);
+
+    const result = await categoryModel.updateOne({ _id: categoryId }, { $set: obj });
 
     if (result) {
-      response.send({ "save": true, "updatedCategory": result });
-      console.log(result);
+      response.send({ update: true });
     } else {
-      response.send({ "save": false });
+      response.send({ update: false });
     }
   } catch (error) {
-    console.error('Error updating data to MongoDB', error);
-    response.status(500).send('Internal Server Error');
+    console.error(error);
+    response.status(500).send({ update: false });
+  }
+});
+
+
+
+
+
+
+customReferences.app.get('/fetchCategory/:id', upload.single("category_image"), async (request, response) => {
+  const categoryId = request.params.id;
+
+  try {
+    // Find the category by ID
+    const category = await categoryModel.findById(categoryId);
+
+    if (category) {
+      console.log(categoryId);
+      response.json(category);
+    } else {
+      response.status(404).json({ error: 'Category not found' });
+    }
+  } catch (error) {
+    console.error('Error fetching category details:', error);
+    response.status(500).json({ error: 'Internal Server Error' });
   }
 });
 

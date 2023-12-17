@@ -8,8 +8,8 @@ import { AppProvider } from './src/context/AppContext';
 //..............import screens............
 import AppIntroScreen from './src/screens/Onboarding/AppIntroScreen'
 import SplashScreen from './src/screens/Splash/SplashScreen';
-import LoginScreen from './src/screens/Seller/Auth/LoginScreen';
-import SignupScreen from './src/screens/Seller/Auth/SignupScreen';
+import LoginScreen from './src/screens/Customer/Auth/SignupScreen';
+import SignupScreen from './src/screens/Customer/Auth/SignupScreen';
 import Categories from './src/screens/Categories';
 import Subcategories from './src/screens/Subcategories';
 import Products from './src/screens/Products';
@@ -39,11 +39,10 @@ import SellerProfile from './src/screens/SellerScreens/SellerProfile';
 import FavouriteScreen from './src/screens/FavouriteScreen';
 import SellerListScreen from './src/screens/SellerScreens/SellerListScreen';
 import SellerDetailScreen from './src/screens/SellerScreens/SellerDetailScreen';
-import ZoniaMap from './src/screens/Maps/ZoniaMap';
+
 import ProductDetail from './src/screens/SellerScreens/ProductDetail';
 import Orders from './src/screens/Orders/Orders';
 import VendorsAvailable from './src/screens/VendorsAvailable';
-
 // enableLatestRenderer();
 //....navigation constant...
 const Stack = createNativeStackNavigator();
@@ -55,8 +54,9 @@ const App = () => {
       <NavigationContainer>
         <Stack.Navigator
           screenOptions={{ headerShown: false }}
-          initialRouteName="SplashScreen">
-          <Stack.Screen name="SplashScreen" component={SplashScreen} />
+          initialRouteName="SplshScreen">
+          <Stack.Screen name="SplshScreen" component={SplashScreen} />
+
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
           <Stack.Screen name="SellerSignup" component={SellerSignup} />

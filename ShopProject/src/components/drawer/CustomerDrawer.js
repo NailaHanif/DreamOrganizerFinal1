@@ -5,7 +5,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons'
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import AppColors from "../../assets/colors/AppColors";
 //........import DrawerScreens.....
-import LoginScreen from "../../screens/Seller/Auth/LoginScreen";
+import LoginScreen from "../../screens/Customer/Auth/LoginScreen";
 import Categories from "../../screens/Categories";
 import Profile from "../../screens/DrawerScreens/Profile";
 import MyEvents from "../../screens/DrawerScreens/MyEvents";

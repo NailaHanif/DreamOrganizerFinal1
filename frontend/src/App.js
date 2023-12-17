@@ -28,7 +28,7 @@ import Addcat from "layouts/business/BusinessForms/Addcat";
 import AddSubCategory from "layouts/business/BusinessForms/AddSubCategory";
 import AddEvent from "layouts/business/BusinessForms/AddEvent";
 import Orders from "layouts/business/orders";
-
+import Subcategory from "layouts/business/subCategory/index";
 export default function App() {
   const [controller, dispatch] = useSoftUIController();
   const { direction, layout, openConfigurator, sidenavColor } = controller;
@@ -69,11 +69,11 @@ export default function App() {
   
   <Routes>
     <Route path="/" element={<SignIn />} />
-    <Route path="/signup" element={<SignUp />} />
+    {/* <Route path="/signup" element={<SignUp />} />
     <Route path="/notfound" element={<NotFound />} />
     <Route path="/addcategory" element={< Addcat/>} />
-    <Route path="/addSubCategory" element={< AddSubCategory/>} />
-    <Route path="/orders" element={< Orders/>} />
+    <Route path="/SubCategory" element={< Subcategory/>} />
+    <Route path="/orders" element={< Orders/>} /> */}
     
     {getRoutes(routes)}
     {getRoutes(shopRoutes)}

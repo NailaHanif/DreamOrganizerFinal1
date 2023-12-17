@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import axios from "axios";
 import {
   Card,
@@ -9,7 +10,7 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import SoftBox from "components/SoftBox";   //div,/view
+import SoftBox from "components/SoftBox"; //div,/view
 import SoftTypography from "components/SoftTypography"; //text
 import SoftInput from "components/SoftInput"; //input
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -24,17 +25,23 @@ import SoftAvatar from "components/SoftAvatar";
 function Category() {
   const [categories, setCategories] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [categoryDetails, setCategoryDetails] = useState(null);
   const [newCategoryImage, setNewCategoryImage] = useState("");
   const [nameErr, setNameErr] = useState("");
   const [imgErr, setImgErr] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-
+  const [showUpdateForm, setShowUpdateForm] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+  const params = useParams();
+  const categoryId = params.id;
   const isAddButtonDisabled = () => {
     if (!newCategoryName || !newCategoryImage) {
       return true;
     }
     return false;
+  };
+  const toggleAddForm = () => {
+    setShowAddForm(!showAddForm);
   };
   const viewAllCategories = () => {
     axios
@@ -43,39 +50,24 @@ function Category() {
         console.log(response.data);
         const categoriesData = response.data;
 
-        console.log("Fetched data:", categoriesData); // Log the retrieved data
+        console.log("Fetched data:", categoriesData);
         setCategories(categoriesData); // Update the state with the fetched data
       })
       .catch((error) => {
         console.error("Error fetching user data:", error);
       });
   };
+
   useEffect(() => {
     viewAllCategories();
   }, []);
 
   const handleAddCategory = () => {
-    if (newCategoryName == "" || newCategoryName == null) {
-      setNameErr("category name must not be null");
-    }
-    if (newCategoryImage == "" || newCategoryImage == null) {
-      setImgErr("category image must not be null");
-    }
-    if (!newCategoryName || !newCategoryImage) {
-      return false;
-    }
-   
     const formData = new FormData();
     formData.append("category_name", newCategoryName);
     formData.append("category_image", newCategoryImage);
-
-    // Check if it's an update or add operation
-    const url = selectedCategory
-      ? `http://localhost:8888/updateCategory/${selectedCategory._id}`
-      : "http://localhost:8888/addCategory";
-
     axios
-      .post(url, formData, {
+      .post("http://localhost:8888/addCategory", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -91,32 +83,22 @@ function Category() {
           // Handle failure
           console.log("data is not saved successfully");
         }
-        // if (response.data.error === 'Duplicate category name') {
-        //   alert('Category name already exists. Please choose a different name.');
-        // } else if (response.data.error === 'Duplicate category image') {
-        //   alert('Category image already exists. Please choose a different image.');
-        // } else {
-        //   alert('Failed to save data. Please try again later.');
-        // }
+        if (response.data.error === "Duplicate category name") {
+          alert("Category name already exists. Please choose a different name.");
+        } else if (response.data.error === "Duplicate category image") {
+          alert("Category image already exists. Please choose a different image.");
+        }
         viewAllCategories();
         setNewCategoryImage("");
         setNewCategoryName("");
+        setSelectedCategory(null); // Move this line inside the .then block
       })
       .catch(function (error) {
         // Handle error
         console.error(error);
+        // You might want to set the state here too, depending on your use case
       });
-
-    setSelectedCategory(null);
   };
-
-  const handleUpdateCategory = (categoryId) => {
-    const categoryToUpdate = categories.find((category) => category._id === categoryId);
-    setSelectedCategory(categoryToUpdate);
-    setNewCategoryName(categoryToUpdate.category_name); // Add this line to update the name in the form
-    setShowAddForm(true);
-  };
-
   const handleDeleteCategory = async (categoryId) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this category?");
 
@@ -128,10 +110,8 @@ function Category() {
         if (response.data.success) {
           console.log("Category deleted successfully");
 
-          // Show a success alert
           alert("Category deleted successfully");
 
-          // Refresh the category list
           viewAllCategories();
         } else {
           console.log("Failed to delete category");
@@ -139,6 +119,55 @@ function Category() {
       } catch (error) {
         console.error("Error deleting category:", error);
       }
+    }
+  };
+  const fetchCategory = async (categoryId) => {
+    try {
+      console.log("id:", categoryId);
+      let result = await axios.get(`http://localhost:8888/fetchCategory/${categoryId}`);
+      setNewCategoryName(result.data.category_name);
+      setNewCategoryImage(result.data.category_image);
+
+      console.log("Name:", newCategoryName);
+      console.log("Image:", newCategoryImage);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleUpdateCategory = async (categoryId) => {
+    try {
+      await fetchCategory(categoryId);
+      setShowUpdateForm(true);
+
+      const formData = new FormData();
+      formData.append("category_name", newCategoryName);
+
+      if (newCategoryImage) {
+        formData.append("category_image", newCategoryImage);
+      }
+
+      const result = await axios.put(
+        `http://localhost:8888/updateCategory/${categoryId}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      alert("data updated successfully");
+
+      viewAllCategories();
+
+      // Close the update form
+      setShowUpdateForm(false);
+
+      console.log("updated");
+      console.log("server:", result);
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -151,86 +180,114 @@ function Category() {
           <Card>
             <SoftBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
               <SoftTypography variant="h6">Category List</SoftTypography>
-              <SoftButton onClick={() => setShowAddForm(true)} variant="gradient" color="info">
+              <SoftButton
+                onClick={() => {
+                  toggleAddForm();
+                }}
+                variant="gradient"
+                color="info"
+              >
                 Add New Category
               </SoftButton>
             </SoftBox>
 
             {showAddForm && (
-              <Card style={{ width: 300, margin: '0 auto' }}>
-              <SoftBox pt={2} pb={3} px={3}>
+              <Card style={{ width: 300, margin: "0 auto" }}>
+                <SoftBox pt={2} pb={3} px={3}>
                   <SoftBox component="form" role="form">
-                <SoftBox mb={2}>
-                  <SoftTypography>name</SoftTypography>
-                  <SoftInput
-                  style={{width:180,height:50}}
-                    placeholder="Category Name"
-                    value={selectedCategory ? selectedCategory.category_name : newCategoryName}
-                    name="category_name"
-                    onChange={(e) => {
-                      setNewCategoryName(e.target.value);
-                      setNameErr("");
-                    }}
-                  />
-                  {nameErr ? (
-                    <p style={{ color: "red", fontSize: 14, fontFamily: "Poppins-Regular" }}>
-                      {nameErr}
-                    </p>
-                  ) : null}
-
-                  <SoftBox>
-                    <SoftTypography>Image</SoftTypography>
-                    <input
-                      type="file"
-                      placeholder="Category Image"
-                      name="category_image"
-                      onChange={(e) => {
-                        if (e.target.files[0] != null && e.target.files[0] != "") {
-                          setNewCategoryImage(e.target.files[0]);
-                          setImgErr("");
-                        } else {
-                          alert("please add a picture");
-                        }
-                      }}
-                    />
-
-                    {imgErr ? (
-                      <div>
-                        <p
-                          style={{
-                            color: "#FF0000",
-                            fontSize: 14,
-                            fontFamily: "Poppins-Regular",
+                    <SoftBox mb={2}>
+                      <SoftTypography>Name</SoftTypography>
+                      <SoftInput
+                        style={{ width: 180, height: 50 }}
+                        placeholder="Category Name"
+                        value={categoryDetails ? categoryDetails.category_name : newCategoryName}
+                        name="category_name"
+                        onChange={(e) => {
+                          setNewCategoryName(e.target.value);
+                        }}
+                      />
+                      <SoftBox>
+                        <SoftTypography>Image</SoftTypography>
+                        <input
+                          type="file"
+                          placeholder="Category Image"
+                          name="category_image"
+                          onChange={(e) => {
+                            if (e.target.files[0] != null && e.target.files[0] != "") {
+                              setNewCategoryImage(e.target.files[0]);
+                            } else {
+                              alert("please add a picture");
+                            }
                           }}
-                        >
-                          {imgErr}
-                        </p>
-                      </div>
-                    ) : null}
+                        />
+                      </SoftBox>
+                    </SoftBox>
+                    <SoftBox mt={4} mb={1}>
+                      <SoftButton
+                        variant="gradient"
+                        color="info"
+                        fullWidth
+                        onClick={() => {
+                          handleAddCategory();
+                          setShowAddForm(false);
+                        }}
+                        disabled={isAddButtonDisabled()}
+                      >
+                        Add category
+                      </SoftButton>
+                    </SoftBox>
                   </SoftBox>
                 </SoftBox>
-                <SoftBox mt={4} mb={1}>
-                  <SoftButton
-                    variant="gradient"
-                    color="info"
-                    fullWidth
-                    onClick={() => {
-                      if (selectedCategory) {
-                        handleUpdateCategory(selectedCategory._id);
-                      } else {
-                        handleAddCategory();
-                      }
-                      setShowAddForm(false);
-                    }}
-                    disabled={isAddButtonDisabled()}
-                  >
-                    {selectedCategory ? "Update Category" : "Add Category"}
-                  </SoftButton>
-                </SoftBox>
-              </SoftBox>
-              </SoftBox>
               </Card>
-            
+            )}
+            {showUpdateForm && (
+              <Card style={{ width: 300, margin: "0 auto" }}>
+                <SoftBox pt={2} pb={3} px={3}>
+                  <SoftBox component="form" role="form">
+                    <SoftBox mb={2}>
+                      <SoftTypography>Name</SoftTypography>
+                      <SoftInput
+                        style={{ width: 180, height: 50 }}
+                        placeholder="Category Name"
+                        value={newCategoryName}
+                        name="category_name"
+                        onChange={(e) => {
+                          setNewCategoryName(e.target.value);
+                        }}
+                      />
+                      <SoftBox>
+                        <SoftTypography>Image</SoftTypography>
+                        <input
+                          type="file"
+                          placeholder="Category Image"
+                          name="category_image"
+                          onChange={(e) => {
+                            if (e.target.files[0] != null && e.target.files[0] != "") {
+                              setNewCategoryImage(e.target.files[0]);
+                            } else {
+                              alert("please add a picture");
+                            }
+                          }}
+                        />
+                      </SoftBox>
+                    </SoftBox>
+                    <SoftBox mt={4} mb={1}>
+                      <SoftButton
+                        variant="gradient"
+                        color="info"
+                        fullWidth
+                        onClick={() => {
+                          handleUpdateCategory(selectedCategoryId);
+                          setShowUpdateForm(false);
+                        }}
+                        disabled={isAddButtonDisabled()}
+                      >
+                        Update category
+                      </SoftButton>
+                    </SoftBox>
+                  </SoftBox>
+                </SoftBox>
+              </Card>
             )}
 
             <div style={{ textAlign: "center" }}>
@@ -251,7 +308,7 @@ function Category() {
                     <tbody>
                       {categories.map((category, index) => (
                         <tr key={index}>
-                          <td>{category._id}</td>
+                          <td>{index + 1}</td>
                           <td>{category.category_name}</td>
 
                           <td>
@@ -264,7 +321,13 @@ function Category() {
                             )}
                           </td>
                           <td className="button-column">
-                            <SoftButton onClick={() => handleUpdateCategory(category._id)}>
+                            <SoftButton
+                              onClick={() => {
+                                handleUpdateCategory(category._id);
+                                setSelectedCategoryId(category._id);
+                                setShowUpdateForm(true);
+                              }}
+                            >
                               update
                             </SoftButton>
                             <SoftButton onClick={() => handleDeleteCategory(category._id)}>

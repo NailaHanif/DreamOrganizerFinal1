@@ -253,7 +253,7 @@ const Categories = props => {
             }}
           />
         </View>
-        <View>
+        {/* <View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between',backgroundColor:AppColors.background }}>
             <Text style={[LabelStyles.headingSmDark, { margin: 10 }]}>Discounted</Text>
             <TouchableOpacity onPress={() => props.navigation.navigate('VendorsAvailable')}>
@@ -271,7 +271,7 @@ const Categories = props => {
               return <InnerCategoryCard item={item} props={props} />;
             }}
           />
-        </View>
+        </View> */}
         <View>
         </View>
       </ScrollView>

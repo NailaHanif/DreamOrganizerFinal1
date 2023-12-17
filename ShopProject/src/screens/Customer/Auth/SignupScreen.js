@@ -1,123 +1,107 @@
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   TextInput,
-  Platform,
   StyleSheet,
   StatusBar,
-  Image,
-  Alert,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import LinearGradient from 'react-native-linear-gradient';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
-import { useTheme } from 'react-native-paper';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import AppColors from '../../../assets/colors/AppColors';
-import { Neomorph } from 'react-native-neomorph-shadows-fixes';
-import NeomorphStyles from '../../../assets/styles/NeomorphStyles';
-import TextFieldStyles from '../../../assets/styles/TextFieldStyles';
-import { clockRunning } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import AppContext from '../../../context/AppContext';
-import axios from 'axios'
+import axios from 'axios';
+import AppColors from '../../../assets/colors/AppColors';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 const SellerSignup = () => {
-  const {baseUrl}=useContext(AppContext)
-  const navigation = useNavigation()
-  const [userName,setUserName]=useState('');
-  const [userEmail,setUserEmail]=useState('');
-  const [userPassword,setUserPassword]=useState('');
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [userPassword, setUserPassword] = useState('');
   const [isVisiblePassword, setIsVisiblePassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const [userNameError,setUserNameError]=useState('');
-  const [userEmailError,setUserEmailError]=useState('');
-  const [userPasswordError,setUserPasswordError]=useState('');
-  //functions
-  const isValiduserName=userName=>{
+  const [userNameError, setUserNameError] = useState('');
+  const [userEmailError, setUserEmailError] = useState('');
+  const [userPasswordError, setUserPasswordError] = useState('');
+
+  const isValidUserName = (userName) => {
     const usernamePattern = /^[a-zA-Z0-9_]{3,16}$/;
-    return usernamePattern.test(userName)
-   }
-  const  isValidEmail=userEmail=>{
-   const  emailRegex= /\S+@\S+\.\S+/;
-    return emailRegex.test(userEmail)
-  }
-  const isValidPassword=userPassword=>{
-    return userPassword.length>=8
-  }
-  const userSignup=()=>{
-    if(!userName){
-      setUserNameError('Please enter your username.')
-    } else if(!isValiduserName(userName)){
-      setUserNameError('please enter valid username without spaces.')
+    return usernamePattern.test(userName);
+  };
+
+  const isValidEmail = (userEmail) => {
+    const emailRegex = /\S+@\S+\.\S+/;
+    return emailRegex.test(userEmail);
+  };
+
+  const isValidPassword = (userPassword) => {
+    return userPassword.length >= 8;
+  };
+
+  const userSignup = () => {
+    if (!userName || !isValidUserName(userName)) {
+      setUserNameError('Please enter a valid username without spaces.');
+    } else {
+      setUserNameError('');
     }
-    if(!userEmail){
-      setUserEmailError('please enter email.')
-    }else if(!isValidEmail(userEmail)){
-      setUserEmailError('Please enter valid email.')
+
+    if (!userEmail || !isValidEmail(userEmail)) {
+      setUserEmailError('Please enter a valid email.');
+    } else {
+      setUserEmailError('');
     }
-    if(!userPassword){
-      setUserPasswordError('Enter your password')
-    }else if(!isValidPassword(userPassword)){
-      setUserPasswordError('password must be 8 characters long')
+
+    if (!userPassword || !isValidPassword(userPassword)) {
+      setUserPasswordError('Password must be 8 characters long.');
+    } else {
+      setUserPasswordError('');
     }
-    if(!userName || !userEmail || !userPassword|| !isValiduserName(userName)|| !isValidEmail(userEmail) || !isValidPassword(userPassword)){
+
+    if (
+      !userName ||
+      !isValidUserName(userName) ||
+      !userEmail ||
+      !isValidEmail(userEmail) ||
+      !userPassword ||
+      !isValidPassword(userPassword)
+    ) {
       return false;
-    } 
-//     const handleDelete = (customerId) => {
-//   // Make a DELETE request to the backend endpoint
-//   axios.delete(`${baseUrl}/deleteCustomer/${customerId}`)
-//     .then((response) => {
-//       if (response.data.success) {
-//         // Update the state or fetch the updated customer list
-//         // Example: setCustomers(updatedCustomers);
-//         console.log(response.data.message);
-//       } else {
-//         console.error(response.data.message);
-//       }
-//     })
-//     .catch((error) => {
-//       console.error('Error deleting customer:', error);
-//     });
-// };
+    }
 
     const formData = new FormData();
     formData.append('name', userName);
     formData.append('email', userEmail);
     formData.append('password', userPassword);
 
+    setLoading(true);
+
     axios({
       method: 'post',
-
-      url: 'http://192.168.1.19:8888/customerSignup',
-
+      url: `${baseUrl}/customerSignup`,
       data: formData,
-      headers: {'Content-Type': 'multipart/form-data'},
+      headers: { 'Content-Type': 'multipart/form-data' },
     })
       .then(function (response) {
-        if (response.data.save == true) {
-          AsyncStorage.setItem('customers', JSON.stringify(response.data.newCustomer));
+        setLoading(false);
+
+        if (response.data.save === true) {
+          // Save the token to AsyncStorage
+          AsyncStorage.setItem('customerToken', response.data.token);
           navigation.navigate('CustomerDrawer');
-        } else if (response.data.save == false) {
-          // setUserEmailError("A user With the same email already exists.");
-          // alert('A user with this Email Address Already Exists');
+        } else if (response.data.save === false) {
           setUserEmailError('A user with this Email Address Already Exists');
         } else {
           alert('Account cannot be created! Please try again later.');
         }
       })
       .catch(function (response) {
-        //handle error
-    console.log("Stop");
-        console.log(response);
+        setLoading(false);
+        console.log('Error:', response);
       });
   };
-  
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
       <View style={styles.container}>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 const AppContext = React.createContext();
 
-const baseUrl='http://192.168.1.19:8888'
+const baseUrl='http://192.168.1.11:8888'
 export const AppProvider = ({ children }) => {
   const [selectedEvent, setSelectedEvent] = useState('');
   const [selectedC, setSelectedC] = useState([]);

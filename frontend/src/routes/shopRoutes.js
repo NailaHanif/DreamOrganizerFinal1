@@ -24,7 +24,7 @@ const shopRoutes = [
   },
   {
     type: "collapse",
-    name: "subCategory",
+    name: "SubCategory",
     key: "subCategory",
     route: "/SubCategory",
     icon: <FaWallet size="14px" />,

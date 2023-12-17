@@ -4,7 +4,7 @@ const EventSchema = customReferences.mongoose.Schema({
     "Event_price":Number,
     "Event_description":String,
     "Event_category":String,
-    'Event_Image':String,
+    'Event_image':String,
    });
 
    module.exports = customReferences.mongoose.model('events',EventSchema);

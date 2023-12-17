@@ -21,58 +21,120 @@ const upload = customReferences.multer({
     }
   },
 });
-
-customReferences.app.get('/getCategories', async (req, res) => {
+// Fetch all categories
+customReferences.app.get("/getCategories", async (req, res) => {
   try {
     const categories = await categoryModel.find();
     res.json(categories);
   } catch (error) {
-    console.error('Error fetching categories:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error fetching categories:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-// ... (previous code)
+// Add subcategory
+// Add subcategory
+// customReferences.app.post("/addSubCategory", upload.single("subCategory_image"), async (req, res) => {
+//   try {
+//     if (!req.file) {
+//       return res.status(400).send("No file uploaded.");
+//     }
 
-customReferences.app.post("/addSubCategory", upload.single("subCategory_image"), async (request, response) => {
+//     // Assuming categoryId is passed in the request body
+//     // const categoryId = req.body.categoryId;
+//     // Check if categoryId is a valid ObjectId
+//     // if (!customReferences.mongoose.Types.ObjectId.isValid(categoryId)) {
+//     //   return res.status(400).send("Invalid category ID");
+//     // }
+//     const categoryId = req.body.categoryId; // Make sure to validate and extract the category ID
+// const newSubCategory = new subCategoryModel({
+//   subCategory_name: req.body.subCategory_name,
+//   subCategory_image: req.file.filename,
+//   categoryId: categoryId,
+// });
+
+
+//   let objId= new customReferences.mongoose.Types.ObjectId(newSubCategory.id)
+//   console.log(objId)
+//   await categoryModel.updateOne({
+//     categoryId:categoryId
+//   },{
+//     $push:[
+//       subCategory=objId
+//     ]
+//   })
+
+
+//     const result = await newSubCategory.save();
+
+//     if (result) {
+//       // Populate the categoryId field before sending the response
+//       const populatedSubCategory = await subCategoryModel.findById(result._id).populate('categoryId').exec();
+
+//       res.send({ save: true, newSubCategoryId: populatedSubCategory });
+//     } else {
+//       console.log("Data is not saved successfully");
+//       res.status(500).send("Internal Server Error");
+//     }
+//   } catch (error) {
+//     console.error("Error saving subCategory data to MongoDB", error);
+//     res.status(500).send("Internal Server Error");
+//   }
+// });
+customReferences.app.post("/addSubCategory", upload.single("subCategory_image"), async (req, res) => {
   try {
-    if (!request.file) {
-      return response.status(400).send("No file uploaded.");
-    }
+      if (!req.file) {
+          return res.status(400).send("No file uploaded.");
+      }
 
-    const newSubCategory = new subCategoryModel({
-      subCategory_name: request.body.subCategory_name,
-      subCategory_image: request.file.filename,
-      category: request.body.category,
-    });
+      const categoryId = req.body.categoryId; // Make sure to validate and extract the category ID
+      const newSubCategory = new subCategoryModel({
+          subCategory_name: req.body.subCategory_name,
+          subCategory_image: req.file.filename,
+          categoryId: categoryId,
+      });
 
-    const result = await newSubCategory.save();
+      const result = await newSubCategory.save();
 
-    if (result) {
-      response.send({ save: true, newSubCategory: result });
-    } else {
-      console.log('Data is not saved successfully');
-    }
+      if (result) {
+          // Push the _id of the new SubCategory into the SubCategory array of the corresponding Category
+          await categoryModel.updateOne(
+              { _id: categoryId },
+              { $push: { SubCategory: result._id } }
+          );
+
+          // Populate the categoryId field before sending the response
+          const populatedSubCategory = await subCategoryModel
+              .findById(result._id)
+              .populate("categoryId")
+              .exec();
+
+          res.send({ save: true, newSubCategoryId: populatedSubCategory });
+      } else {
+          console.log("Data is not saved successfully");
+          res.status(500).send("Internal Server Error");
+      }
   } catch (error) {
-    console.error('Error saving subCategory data to MongoDB', error);
-    response.status(500).send('Internal Server Error');
+      console.error("Error saving subCategory data to MongoDB", error);
+      res.status(500).send("Internal Server Error");
   }
 });
 
-// ... (remaining code)
 
 
-// Add other subcategory operations (update, delete, viewAll) similar to the category controller
-customReferences.app.get('/viewSubCategories/:categoryId', async (req, res) => {
+// View subcategories for a specific category
+customReferences.app.get("/viewSubCat", async (req, res) => {
   try {
-    const categoryId = req.params.categoryId;
-    const subcategories = await subCategoryModel.find({ category: categoryId });
+    // const categoryId = req.body.ObjectId;
+    const subcategories = await subCategoryModel.find().populate();
+    // const subcategories = await subCategoryModel.find().populate("category");
+ 
     res.json(subcategories);
+    console.log(subcategories)
   } catch (error) {
-    console.error('Error fetching subcategories:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error fetching subcategories:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
 
-module.exports = customReferences.app;

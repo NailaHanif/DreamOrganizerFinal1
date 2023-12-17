@@ -6,9 +6,11 @@ const formData = customReferences.multer();
 customReferences.app.post("/adminLogin", formData.none(), async (request, response) => {
   try {
     const { email, password } = request.body;
+    console.log(request.body)
     const admin = await adminModel.findOne({ email, password });
 
     if (admin) {
+      console.log(admin)
       response.send({ match: true, LoggedInadmin: admin });
     } else {
       response.send({ match: false, emailMatch: false, passwordMatch: false });

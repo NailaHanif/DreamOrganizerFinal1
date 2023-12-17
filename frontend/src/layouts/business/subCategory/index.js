@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from "react";
+
+
 import axios from "axios";
 import {
   Card,
   Table,
   TableBody,
-  TableCell,
+  td,
   TableContainer,
   TableHead,
   TableRow,
 } from "@mui/material";
-import SoftBox from "components/SoftBox";   //div,/view
+import SoftBox from "components/SoftBox"; //div,/view
 import SoftTypography from "components/SoftTypography"; //text
 import SoftInput from "components/SoftInput"; //input
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -21,141 +23,85 @@ import shopRoutes from "routes/shopRoutes";
 import "../tableData.css";
 import SoftAvatar from "components/SoftAvatar";
 
+
 function subCategory() {
   const [subcategories, setSubcategories] = useState([]);
-const [showSubcategories, setShowSubcategories] = useState(false);
+  const [showSubcategories, setShowSubcategories] = useState(false);
   const [categories, setCategories] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
-const [newSubCategoryName, setNewSubCategoryName] = useState("");
-const [newSubCategoryImage, setNewSubCategoryImage] = useState("");
-const [subCategoryNameErr, setSubCategoryNameErr] = useState("");
-const [subCategoryImgErr, setSubCategoryImgErr] = useState("");
+  const [newSubCategoryName, setNewSubCategoryName] = useState("");
+  const [newSubCategoryImage, setNewSubCategoryImage] = useState("");
+  const [subCategoryNameErr, setSubCategoryNameErr] = useState("");
+  const [subCategoryImgErr, setSubCategoryImgErr] = useState("");
+  const buttonStyle = {
+    background: 'linear-gradient(to right, #009387, #023e8a)',
+    color: '#fff',
+    padding: '10px 20px',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+  };
+  const addSubCategory = () => {
+    const formData = new FormData();
+    if (!newSubCategoryName.trim()) {
+      setSubCategoryNameErr("Subcategory name is required");
+      return;
+    }
+    if (!newSubCategoryImage) {
+      setSubCategoryImgErr("Subcategory image is required");
+      return;
+    }
 
-const addSubCategory = () => {
-  if (!selectedCategory) {
-    console.error("No category selected");
-    return;
-  }
-  console.log("selectedCategory:", selectedCategory);
-  setShowAddForm(true)
-  // Validation logic (you can customize this based on your requirements)
-  if (!newSubCategoryName.trim()) {
-    setSubCategoryNameErr("Subcategory name is required");
-    return;
-  }
-  if (!newSubCategoryImage) {
-    setSubCategoryImgErr("Subcategory image is required");
-    return;
-  }
+    // Append data to formData
+    formData.append("subCategory_name", newSubCategoryName);
+    formData.append("subCategory_image", newSubCategoryImage);
 
-  // If validation passes, make an API request to add the subcategory
-  const formData = new FormData();
-  formData.append("subCategory_name", newSubCategoryName);
-  formData.append("subCategory_image", newSubCategoryImage);
-  formData.append("category", selectedCategory._id);
- console.log(selectedCategory._id)
- axios.post("http://localhost:8888/addSubCategory", formData)
-  .then((response) => {
-    console.log(response.data);
-    // Optionally, update the state or perform any other actions
-    // For example, you may want to refresh the list of subcategories
-    viewSubCategories(selectedCategory._id);
-    // Clear the form fields
-    setNewSubCategoryName("");
-    setNewSubCategoryImage("");
-    setSubCategoryNameErr("");
-    setSubCategoryImgErr("");
-    // Hide the add form
-    setShowAddForm(false);
-  })
-  .catch((error) => {
-    console.error("Error adding subcategory:", error);
-    // Handle errors as needed
-  });
+    axios
+      .post("http://localhost:8888/addSubCategory", formData)
+      .then((response) => {
+        console.log(response.data);
+        viewSubCategories();
+        setNewSubCategoryName("");
+        setNewSubCategoryImage("");
+        setSubCategoryNameErr("");
+        setSubCategoryImgErr("");
+        setShowAddForm(false);
+      })
+      .catch((error) => {
+        console.error("Error adding subcategory:", error);
+      });
+  };
 
-};
-
-// ... (previous code)
-
-{showSubcategories && (
-  <div>
-    <p>Subcategories:</p>
-    <ul>
-      {subcategories.map((subcategory, index) => (
-        <li key={index}>{subcategory.subCategory_name}</li>
-      ))}
-    </ul>
-  </div>
-)}
-
-{showAddForm && (
-  <div>
-    <h3>Add New Subcategory</h3>
-    <div>
-      <SoftInput
-        label="Subcategory Name"
-        value={newSubCategoryName}
-        onChange={(e) => setNewSubCategoryName(e.target.value)}
-      />
-      {subCategoryNameErr && <p style={{ color: "red" }}>{subCategoryNameErr}</p>}
-    </div>
-    <div>
-      <SoftInput
-        type="file"
-        label="Subcategory Image"
-        onChange={(e) => setNewSubCategoryImage(e.target.files[0])}
-      />
-      {subCategoryImgErr && <p style={{ color: "red" }}>{subCategoryImgErr}</p>}
-    </div>
-    <div>
-      <SoftButton onClick={addSubCategory}>Add Subcategory</SoftButton>
-    </div>
-  </div>
-)}
-
-// ... (remaining code)
+  const viewSubCategories = (categoryId) => {
+    axios
+      .get(`http://localhost:8888/viewSubCat`)
+      .then((response) => {
+        console.log(response.data);
+        setSubcategories(response.data);
+        setShowSubcategories(true);
+      })
+      .catch((error) => {
+        console.error("Error fetching subcategories:", error);
+      });
+  };
 
   const viewAllCategories = () => {
     axios
-      .get("http://localhost:8888/viewAllCategories")
+      .get(`http://localhost:8888/getCategories`)
       .then((response) => {
         console.log(response.data);
-        const categoriesData = response.data;
-
-        console.log("Fetched data:", categoriesData); // Log the retrieved data
-        setCategories(categoriesData); // Update the state with the fetched data
+        setCategories(response.data);
       })
       .catch((error) => {
-        console.error("Error fetching user data:", error);
+        console.error("Error fetching categories:", error);
       });
   };
-  // ... (previous code)
-
-const viewSubCategories = (categoryId) => {
-  axios
-    .get(`http://localhost:8888/viewSubCategories/${categoryId}`)
-    .then((response) => {
-      console.log(response.data);
-      setSubcategories(response.data);
-      setShowSubcategories(true);
-    })
-    .catch((error) => {
-      console.error("Error fetching subcategories:", error);
-    });
-};
-
-// ... (previous code)
-
-
-
-// ... (remaining code)
 
   useEffect(() => {
     viewAllCategories();
   }, []);
- 
- 
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -163,95 +109,175 @@ const viewSubCategories = (categoryId) => {
       <SoftBox py={3}>
         <SoftBox mb={3}>
           <Card>
-            <SoftBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
+            <SoftBox
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              p={3}
+            >
               <SoftTypography variant="h6">SubCategory List</SoftTypography>
-            
+              <SoftButton
+                onClick={() => {
+                  addSubCategory();
+                  setShowAddForm(true);
+                }}
+              >
+                Add SubCategories
+              </SoftButton>
               {showSubcategories && (
-  <div>
-    <p>Subcategories:</p>
-    <ul>
-      {subcategories.map((subcategory, index) => (
-        <li key={index}>{subcategory.subCategory_name}</li>
-      ))}
-    </ul>
-  </div>
-)}
-{showAddForm && (
-  <div>
-    <h3>Add New Subcategory</h3>
-    <div>
-      <SoftInput
-        label="Subcategory Name"
-        value={newSubCategoryName}
-        onChange={(e) => setNewSubCategoryName(e.target.value)}
-      />
-      {subCategoryNameErr && <p style={{ color: "red" }}>{subCategoryNameErr}</p>}
-    </div>
-    <div>
-      <SoftInput
-        type="file"
-        label="Subcategory Image"
-        onChange={(e) => setNewSubCategoryImage(e.target.files[0])}
-      />
-      {subCategoryImgErr && <p style={{ color: "red" }}>{subCategoryImgErr}</p>}
-    </div>
-    <div>
-      <SoftButton onClick={addSubCategory}>Add Subcategory</SoftButton>
-    </div>
-  </div>
-)}
+                <div>
+                  <p>Subcategories:</p>
+                  <ul>
+                    {subcategories.map((subcategory, index) => (
+                      <li key={index}>{subcategory.subCategory_name}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {showAddForm && (
+                <div className="relative">
+                  <h3>Add New Subcategory</h3>
+                  <div className="bd-white p-4 w-52 shadow-lg absolute -left-14 top-24">
+                    <div className="btn-group">
+                      <button
+                        type="button"
+                        className="btn btn-info dropdown-toggle dropdown-toggle-split"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        data-bs-toggle="dropdown"
+                      >
+                        <span className="sr-only">Toggle Dropdown</span>
+                      </button>
+                      <div className="dropdown-menu">
+                        <ul>
+                          {categories.map((category, index) => (
+                            <li key={index}>
+                              <button
+                                className="dropdown-item"
+                                onClick={() => setSelectedCategory(category)}
+                              >
+                                {category.category_name}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  {selectedCategory && (
+                    <div>
+                      <h4>Selected Category:</h4>
+                      <p>{selectedCategory.category_name}</p>
+                    </div>
+                  )}
+                  <div>
+                    <SoftInput
+                      label="Subcategory Name"
+                      value={newSubCategoryName}
+                      onChange={(e) => {
+                        setNewSubCategoryName(e.target.value);
+                        setSubCategoryNameErr("");
+                      }}
+                    />
+                    {subCategoryNameErr && (
+                      <p style={{ color: "red" }}>{subCategoryNameErr}</p>
+                    )}
+                  </div>
+                  <div>
+                    <SoftInput
+                      type="file"
+                      label="Subcategory Image"
+                      onChange={(e) =>
+                        setNewSubCategoryImage(e.target.files[0])
+                      }
+                    />
+                    {subCategoryImgErr && (
+                      <p style={{ color: "red" }}>{subCategoryImgErr}</p>
+                    )}
+                  </div>
+                  <div>
+                    <SoftButton onClick={addSubCategory}>
+                      Add Subcategory
+                    </SoftButton>
+                  </div>
+                </div>
+              )}
             </SoftBox>
             <div style={{ textAlign: "center" }}>
               {categories.length === 0 ? (
                 <p>No category saved yet!</p>
               ) : (
-                <div>
-                  <Table className="tableData">
-                    {/* Add a CSS class for styling */}
-                    <thead>
-                      <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Image</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {categories.map((category, index) => (
-                        <tr key={index}>
-                          <td>{index+1}</td>
-                          <td>{category.category_name}</td>
-
-                          <td>
-                            {category.category_image && (
-                              <img
-                                src={`http://localhost:8888/public/assets/images/${category.category_image}`}
-                                alt={category.category_name}
-                                style={{ width: "100px", height: "100px", borderRadius: 100 }}
-                              />
-                            )}
-                          </td>
-                          <td className="button-column">
-                          <SoftButton onClick={() => viewSubCategories(category._id)}>
+                <div className="container">
+      <table className="table table-bordered table-hover">
+        <thead className="thead-dark">
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Image</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {categories.map((category, index) => (
+            <tr key={index}>
+              <td>{index + 1}</td>
+              <td>{category.category_name}</td>
+              <td>
+                {category.category_image && (
+                  <img
+                    src={`http://localhost:8888/public/assets/images/${category.category_image}`}
+                    alt={category.category_name}
+                    style={{
+                      width: '50px', // Adjust the width to your preference
+                      height: '50px', // Adjust the height to your preference
+                      objectFit: 'cover',
+                      borderRadius: '50%',
+                    }}
+                  />
+                )}
+              </td>
+              <td className="button-column mr-10 mb-2">
+              <button
+  onClick={() => viewSubCategories(category._id)}
+  className="btn btn-primary mr-2 mb-2 mr-10"
+>
   View SubCategories
-</SoftButton>
+</button>
 
-<SoftButton onClick={() => addSubCategory()}>
+<button
+  onClick={() => {
+    addSubCategory();
+    setShowAddForm(true);
+  }}
+  className="btn btn-success mr-2 mb-2 mr-2"
+>
   Add SubCategories
-</SoftButton>
+</button>
 
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </Table>
-                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
               )}
             </div>
           </Card>
         </SoftBox>
       </SoftBox>
       <Footer />
+      
+<div className="container-fluid p-5" style={{ backgroundImage: 'linear-gradient(to right, #008397, #00587A)' }}>
+  <h1 className="text-white">Beautiful Gradient</h1>
+  <p className="text-white">This is a beautiful gradient applied using Bootstrap.</p>
+</div>
+
+<button style={buttonStyle} type="button">
+      Login
+    </button>
+   
+
     </DashboardLayout>
   );
 }

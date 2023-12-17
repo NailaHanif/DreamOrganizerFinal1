@@ -24,7 +24,6 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import AppColors from '../../../assets/colors/AppColors';
 import { Neomorph } from 'react-native-neomorph-shadows-fixes';
 import NeomorphStyles from '../../../assets/styles/NeomorphStyles';
-import TextFieldStyles from '../../../assets/styles/TextFieldStyles';
 import { clockRunning } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import axios from 'axios'
@@ -76,8 +75,8 @@ const SellerSignup = () => {
   axios.delete(`http://localhost:8888/deleteCustomer/${customerId}`)
     .then((response) => {
       if (response.data.success) {
-        // Update the state or fetch the updated customer list
-        // Example: setCustomers(updatedCustomers);
+        AsyncStorage.setItem('customers', JSON.stringify(response.data.newCustomer));
+        AsyncStorage.setItem('customerToken', response.data.token);  // Store the token
         console.log(response.data.message);
       } else {
         console.error(response.data.message);
@@ -97,7 +96,7 @@ const SellerSignup = () => {
 
     axios({
       method: 'post',
-      url: 'http://192.168.1.19:8888/customerSignup',
+      url: 'http://192.168.1.10:8888/customerSignup',
       data: formData,
       headers: { 'Content-Type': 'multipart/form-data' },
     })
@@ -106,7 +105,8 @@ const SellerSignup = () => {
   
         if (response.data.save == true) {
           AsyncStorage.setItem('customers', JSON.stringify(response.data.newCustomer));
-          navigation.navigate('CustomerDrawer');
+    AsyncStorage.setItem('customerToken', response.data.token);  // Store the token
+    navigation.navigate('CustomerDrawer');
         } else if (response.data.save == false) {
           setUserEmailError('A user with this Email Address Already Exists');
         } else {

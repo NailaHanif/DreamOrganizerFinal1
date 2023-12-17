@@ -1,7 +1,8 @@
 const customerModel = require("../../../model/Customer");
 const customReferences = require("../../../references/customReferences");
 const formData = customReferences.multer();
-
+const jwt =require("jsonwebtoken")
+const jwtKey="dream_organizersustomer"
 const bcrypt = require('bcrypt');
 
 // new user addition
@@ -29,9 +30,22 @@ customReferences.app.post("/customerSignup", formData.none(), async (request, re
     console.log(result);
 
     if (result) {
-      response.send({ "save": true, "newCustomer": result });
+      const isPasswordValid = await bcrypt.compare(password, result.password);
+
+      jwt.sign({result},jwtKey,{expiresIn:"3h"},(error,token)=>{
+        if(error){
+        response.send({ result: "something went wrong" });
+        }
+        if (isPasswordValid) {
+          response.send({ match: true, loggedInUser: result ,token:token});
+        } else {
+          response.send({ match: false });
+        }
+        
+      })
+     
     } else {
-      response.send({ "save": false });
+      response.send({ match: false });
     }
   } catch (error) {
     console.error('Error during customer signup:', error);
@@ -47,11 +61,19 @@ customReferences.app.post("/customerLogin", formData.none(), async (request, res
   
       if (customer) {
         const isPasswordValid = await bcrypt.compare(password, customer.password);
-        if (isPasswordValid) {
+
+        jwt.sign({customer},jwtKey,{expiresIn:"3h"},(error,token)=>{
+          if(error){
           response.send({ match: true, loggedInUser: customer });
-        } else {
-          response.send({ match: false });
-        }
+          }
+          if (isPasswordValid) {
+            response.send({ match: true, loggedInUser: customer ,token:token});
+          } else {
+            response.send({ match: false });
+          }
+          
+        })
+       
       } else {
         response.send({ match: false });
       }
